@@ -1,4 +1,6 @@
-import { FC } from 'react';
+import { FC, useState, useEffect } from 'react';
+import { useSelector, useDispatch } from '../../../../services/store';
+import { updateUser } from '../../../../services/slices';
 
 import { Button, Input } from '@zlden/react-developer-burger-ui-components';
 import styles from './profile.module.css';
@@ -89,3 +91,61 @@ export const ProfileUI: FC<ProfileUIProps> = ({
     </form>
   </main>
 );
+
+export const Profile: FC = () => {
+  const dispatch = useDispatch();
+  const {
+    user,
+    loading,
+    error: updateUserError
+  } = useSelector((state: any) => state.auth);
+  const [formValue, setFormValue] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    password: '••••••••'
+  });
+  const [isFormChanged, setIsFormChanged] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setFormValue({
+        name: user.name,
+        email: user.email,
+        password: '••••••••'
+      });
+    }
+  }, [user]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormValue((prev) => ({ ...prev, [name]: value }));
+    setIsFormChanged(true);
+  };
+
+  const handleSubmit = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    dispatch(updateUser({ name: formValue.name, email: formValue.email }));
+    setIsFormChanged(false);
+  };
+
+  const handleCancel = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    setFormValue({
+      name: user?.name || '',
+      email: user?.email || '',
+      password: '••••••••'
+    });
+    setIsFormChanged(false);
+  };
+
+  return (
+    <ProfileUI
+      formValue={formValue}
+      isFormChanged={isFormChanged}
+      updateUserError={updateUserError}
+      handleSubmit={handleSubmit}
+      handleCancel={handleCancel}
+      handleInputChange={handleInputChange}
+    />
+  );
+};

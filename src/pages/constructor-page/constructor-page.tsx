@@ -1,15 +1,42 @@
-import { useSelector } from '../../services/store';
+import { useSelector, useDispatch } from '../../services/store';
 
 import styles from './constructor-page.module.css';
 
 import { BurgerIngredients } from '../../components';
 import { BurgerConstructor } from '../../components';
 import { Preloader } from '../../components/ui';
-import { FC } from 'react';
+import { FC, useEffect, useMemo } from 'react';
+import { fetchIngredients } from '../../services/slices';
 
 export const ConstructorPage: FC = () => {
-  /** TODO: взять переменную из стора */
-  const isIngredientsLoading = false;
+  const dispatch = useDispatch();
+  const { loading: isIngredientsLoading } = useSelector(
+    (state) => state.ingredients
+  );
+  const { bun, ingredients } = useSelector((state: any) => state.constructor);
+
+  // Создаем счетчики для ингредиентов
+  const ingredientCounters = useMemo(() => {
+    const counters: Record<string, number> = {};
+
+    // Считаем булочку
+    if (bun) {
+      counters[bun._id] = 2; // Булочка всегда считается дважды
+    }
+
+    // Считаем остальные ингредиенты
+    if (ingredients && Array.isArray(ingredients)) {
+      ingredients.forEach((ingredient: any) => {
+        counters[ingredient._id] = (counters[ingredient._id] || 0) + 1;
+      });
+    }
+
+    return counters;
+  }, [bun, ingredients]);
+
+  useEffect(() => {
+    dispatch(fetchIngredients());
+  }, [dispatch]);
 
   return (
     <>
@@ -23,7 +50,7 @@ export const ConstructorPage: FC = () => {
             Соберите бургер
           </h1>
           <div className={`${styles.main} pl-5 pr-5`}>
-            <BurgerIngredients />
+            <BurgerIngredients ingredientCounters={ingredientCounters} />
             <BurgerConstructor />
           </div>
         </main>

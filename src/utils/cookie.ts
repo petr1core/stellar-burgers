@@ -7,7 +7,12 @@ export function getCookie(name: string): string | undefined {
         '=([^;]*)'
     )
   );
-  return matches ? decodeURIComponent(matches[1]) : undefined;
+  const value = matches ? decodeURIComponent(matches[1]) : undefined;
+  console.log(
+    `getCookie(${name}):`,
+    value ? `${value.substring(0, 20)}...` : 'undefined'
+  );
+  return value;
 }
 
 export function setCookie(
@@ -15,6 +20,10 @@ export function setCookie(
   value: string,
   props: { [key: string]: string | number | Date | boolean } = {}
 ) {
+  console.log(
+    `setCookie(${name}):`,
+    value ? `${value.substring(0, 20)}...` : 'undefined'
+  );
   props = {
     path: '/',
     ...props
@@ -40,8 +49,13 @@ export function setCookie(
     }
   }
   document.cookie = updatedCookie;
+  console.log(
+    `setCookie(${name}): cookie set:`,
+    updatedCookie.substring(0, 50) + '...'
+  );
 }
 
 export function deleteCookie(name: string) {
+  console.log(`deleteCookie(${name})`);
   setCookie(name, '', { expires: -1 });
 }

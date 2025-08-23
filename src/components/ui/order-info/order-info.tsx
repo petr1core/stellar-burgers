@@ -1,4 +1,5 @@
 import React, { FC, memo } from 'react';
+import { useSelector } from '../../../services/store';
 import {
   CurrencyIcon,
   FormattedDate
@@ -49,3 +50,36 @@ export const OrderInfoUI: FC<OrderInfoUIProps> = memo(({ orderInfo }) => (
     </div>
   </div>
 ));
+
+export const OrderInfo: FC = () => {
+  const { currentOrder } = useSelector((state: any) => state.orders);
+
+  // TODO: преобразовать данные заказа в нужный формат
+  const orderInfo = currentOrder
+    ? {
+        ingredientsInfo: {},
+        date: new Date(currentOrder.createdAt),
+        total: 0,
+        _id: currentOrder._id,
+        status: currentOrder.status,
+        name: currentOrder.name,
+        createdAt: currentOrder.createdAt,
+        updatedAt: currentOrder.updatedAt,
+        number: currentOrder.number,
+        ingredients: currentOrder.ingredients
+      }
+    : {
+        ingredientsInfo: {},
+        date: new Date(),
+        total: 0,
+        _id: '',
+        status: 'pending',
+        name: 'Заказ #1234',
+        createdAt: '',
+        updatedAt: '',
+        number: 1234,
+        ingredients: []
+      };
+
+  return <OrderInfoUI orderInfo={orderInfo} />;
+};

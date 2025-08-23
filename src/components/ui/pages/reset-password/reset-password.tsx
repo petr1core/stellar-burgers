@@ -1,11 +1,13 @@
-import { FC } from 'react';
+import { FC, useState, useEffect } from 'react';
+import { useSelector, useDispatch } from '../../../../services/store';
+import { resetPassword } from '../../../../services/slices';
 import {
   Input,
   Button,
   PasswordInput
 } from '@zlden/react-developer-burger-ui-components';
 import styles from '../common.module.css';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ResetPasswordUIProps } from './type';
 
 export const ResetPasswordUI: FC<ResetPasswordUIProps> = ({
@@ -63,3 +65,38 @@ export const ResetPasswordUI: FC<ResetPasswordUIProps> = ({
     </div>
   </main>
 );
+
+export const ResetPassword: FC = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const {
+    loading,
+    error: errorText,
+    user
+  } = useSelector((state: any) => state.auth);
+  const [password, setPassword] = useState('');
+  const [token, setToken] = useState('');
+
+  // Если пользователь уже авторизован, перенаправляем его
+  useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
+
+  const handleSubmit = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    dispatch(resetPassword({ password, token }));
+  };
+
+  return (
+    <ResetPasswordUI
+      password={password}
+      setPassword={setPassword}
+      token={token}
+      setToken={setToken}
+      errorText={errorText}
+      handleSubmit={handleSubmit}
+    />
+  );
+};

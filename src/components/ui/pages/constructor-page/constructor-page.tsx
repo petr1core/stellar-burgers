@@ -7,7 +7,8 @@ import { Preloader } from '@ui';
 import { BurgerIngredients, BurgerConstructor } from '@components';
 
 export const ConstructorPageUI: FC<ConstructorPageUIProps> = ({
-  isIngredientsLoading
+  isIngredientsLoading,
+  ingredientCounters
 }) => (
   <>
     {isIngredientsLoading ? (
@@ -20,7 +21,7 @@ export const ConstructorPageUI: FC<ConstructorPageUIProps> = ({
           Соберите бургер
         </h1>
         <div className={`${styles.main} pl-5 pr-5`}>
-          <BurgerIngredients />
+          <BurgerIngredients ingredientCounters={ingredientCounters} />
           <BurgerConstructor />
         </div>
       </main>

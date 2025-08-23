@@ -1,4 +1,5 @@
 import React, { FC, memo } from 'react';
+import { useSelector } from '../../../services/store';
 import styles from './ingredient-details.module.css';
 import { IngredientDetailsUIProps } from './type';
 
@@ -37,3 +38,25 @@ export const IngredientDetailsUI: FC<IngredientDetailsUIProps> = memo(
     );
   }
 );
+
+export const IngredientDetails: FC = () => {
+  const { ingredients } = useSelector((state: any) => state.ingredients);
+
+  // TODO: взять данные из параметров роута
+  const ingredientData = ingredients[0] || {
+    _id: '',
+    name: 'Булочка',
+    type: 'bun',
+    proteins: 9,
+    fat: 3,
+    carbohydrates: 53,
+    calories: 251,
+    price: 60,
+    image: '',
+    image_mobile: '',
+    image_large: '',
+    __v: 0
+  };
+
+  return <IngredientDetailsUI ingredientData={ingredientData} />;
+};

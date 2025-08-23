@@ -1,11 +1,13 @@
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
+import { useSelector, useDispatch } from '../../../../services/store';
+import { loginUser } from '../../../../services/slices';
 import {
   Input,
   Button,
   PasswordInput
 } from '@zlden/react-developer-burger-ui-components';
 import styles from '../common.module.css';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LoginUIProps } from './type';
 
 export const LoginUI: FC<LoginUIProps> = ({
@@ -56,7 +58,7 @@ export const LoginUI: FC<LoginUIProps> = ({
           )}
         </>
       </form>
-      <div className={`pb-4 ${styles.question} text text_type_main-default`}>
+      <div className={`pb-6 ${styles.question} text text_type_main-default`}>
         Вы - новый пользователь?
         <Link to='/register' className={`pl-2 ${styles.link}`}>
           Зарегистрироваться
@@ -71,3 +73,40 @@ export const LoginUI: FC<LoginUIProps> = ({
     </div>
   </main>
 );
+
+export const Login: FC = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const {
+    loading,
+    error: errorText,
+    user
+  } = useSelector((state: any) => state.auth);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  // Если пользователь уже авторизован, перенаправляем его
+  useEffect(() => {
+    if (user) {
+      const from = (location.state as any)?.from?.pathname || '/';
+      navigate(from, { replace: true });
+    }
+  }, [user, navigate, location]);
+
+  const handleSubmit = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    dispatch(loginUser({ email, password }));
+  };
+
+  return (
+    <LoginUI
+      email={email}
+      setEmail={setEmail}
+      password={password}
+      setPassword={setPassword}
+      errorText={errorText}
+      handleSubmit={handleSubmit}
+    />
+  );
+};

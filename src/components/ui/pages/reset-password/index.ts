@@ -1,1 +1,1 @@
-export { ResetPasswordUI } from './reset-password';
+export { ResetPasswordUI, ResetPassword } from './reset-password';

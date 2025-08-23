@@ -1,8 +1,10 @@
-import { FC } from 'react';
+import { FC, useState, useEffect } from 'react';
+import { useSelector, useDispatch } from '../../../../services/store';
+import { forgotPassword } from '../../../../services/slices';
 
 import { Input, Button } from '@zlden/react-developer-burger-ui-components';
 import styles from '../common.module.css';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { PageUIProps } from '../common-type';
 
 export const ForgotPasswordUI: FC<PageUIProps> = ({
@@ -51,3 +53,35 @@ export const ForgotPasswordUI: FC<PageUIProps> = ({
     </div>
   </main>
 );
+
+export const ForgotPassword: FC = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const {
+    loading,
+    error: errorText,
+    user
+  } = useSelector((state: any) => state.auth);
+  const [email, setEmail] = useState('');
+
+  // Если пользователь уже авторизован, перенаправляем его
+  useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
+
+  const handleSubmit = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    dispatch(forgotPassword({ email }));
+  };
+
+  return (
+    <ForgotPasswordUI
+      email={email}
+      setEmail={setEmail}
+      errorText={errorText}
+      handleSubmit={handleSubmit}
+    />
+  );
+};

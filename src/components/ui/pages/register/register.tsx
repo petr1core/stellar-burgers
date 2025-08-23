@@ -1,11 +1,13 @@
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
+import { useSelector, useDispatch } from '../../../../services/store';
+import { registerUser } from '../../../../services/slices';
 import {
   Input,
   Button,
   PasswordInput
 } from '@zlden/react-developer-burger-ui-components';
 import styles from '../common.module.css';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { RegisterUIProps } from './type';
 
 export const RegisterUI: FC<RegisterUIProps> = ({
@@ -79,3 +81,41 @@ export const RegisterUI: FC<RegisterUIProps> = ({
     </div>
   </main>
 );
+
+export const Register: FC = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const {
+    loading,
+    error: errorText,
+    user
+  } = useSelector((state: any) => state.auth);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [userName, setUserName] = useState('');
+
+  // Если пользователь уже авторизован, перенаправляем его
+  useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
+
+  const handleSubmit = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    dispatch(registerUser({ email, password, name: userName }));
+  };
+
+  return (
+    <RegisterUI
+      email={email}
+      setEmail={setEmail}
+      password={password}
+      setPassword={setPassword}
+      userName={userName}
+      setUserName={setUserName}
+      errorText={errorText}
+      handleSubmit={handleSubmit}
+    />
+  );
+};

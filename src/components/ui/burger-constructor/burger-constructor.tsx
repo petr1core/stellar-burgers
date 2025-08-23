@@ -7,8 +7,8 @@ import {
 import styles from './burger-constructor.module.css';
 import { BurgerConstructorUIProps } from './type';
 import { TConstructorIngredient } from '@utils-types';
-import { BurgerConstructorElement, Modal } from '@components';
-import { Preloader, OrderDetailsUI } from '@ui';
+import { BurgerConstructorElement } from '@components';
+import { Modal, Preloader, OrderDetailsUI } from '@ui';
 
 export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
   constructorItems,
@@ -16,7 +16,9 @@ export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
   price,
   orderModalData,
   onOrderClick,
-  closeOrderModal
+  closeOrderModal,
+  onMoveIngredient,
+  onRemoveIngredient
 }) => (
   <section className={styles.burger_constructor}>
     {constructorItems.bun ? (
@@ -37,7 +39,8 @@ export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
       </div>
     )}
     <ul className={styles.elements}>
-      {constructorItems.ingredients.length > 0 ? (
+      {constructorItems.ingredients &&
+      constructorItems.ingredients.length > 0 ? (
         constructorItems.ingredients.map(
           (item: TConstructorIngredient, index: number) => (
             <BurgerConstructorElement
@@ -45,6 +48,9 @@ export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
               index={index}
               totalItems={constructorItems.ingredients.length}
               key={item.id}
+              onMoveUp={() => onMoveIngredient(index, index - 1)}
+              onMoveDown={() => onMoveIngredient(index, index + 1)}
+              onRemove={() => onRemoveIngredient(item.id)}
             />
           )
         )

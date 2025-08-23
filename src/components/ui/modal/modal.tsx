@@ -24,3 +24,9 @@ export const ModalUI: FC<TModalUIProps> = memo(
     </>
   )
 );
+
+export const Modal: FC<TModalUIProps> = ({ title, onClose, children }) => (
+  <ModalUI title={title} onClose={onClose}>
+    {children}
+  </ModalUI>
+);

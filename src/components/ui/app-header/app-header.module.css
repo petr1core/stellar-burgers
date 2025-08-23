@@ -1,6 +1,7 @@
 .header {
   background-color: var(--background);
 }
+
 .menu {
   display: flex;
   align-items: center;
@@ -34,4 +35,19 @@
   display: flex;
   align-items: center;
   margin: 0 auto;
+}
+
+.menu_item {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #8585ad;
+  padding: 8px 16px;
+  margin-right: 8px;
+  border-radius: 8px;
+  transition: color 0.2s ease;
+}
+
+.menu_item:hover {
+  color: #f2f2f3;
 }
