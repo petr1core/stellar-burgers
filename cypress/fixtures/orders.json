@@ -1,0 +1,32 @@
+{
+    "success": true,
+    "orders": [
+        {
+            "_id": "87280",
+            "ingredients": [
+                "643d69a5c3f7b9001cfa093c",
+                "643d69a5c3f7b9001cfa093e",
+                "643d69a5c3f7b9001cfa0943"
+            ],
+            "status": "done",
+            "name": "Краторная булка N-200i",
+            "createdAt": "2024-01-01T12:00:00.000Z",
+            "updatedAt": "2024-01-01T12:00:00.000Z",
+            "number": 87280
+        },
+        {
+            "_id": "87281",
+            "ingredients": [
+                "643d69a5c3f7b9001cfa093c",
+                "643d69a5c3f7b9001cfa093e"
+            ],
+            "status": "pending",
+            "name": "Флюоресцентная булка R2-D3",
+            "createdAt": "2024-01-01T13:00:00.000Z",
+            "updatedAt": "2024-01-01T13:00:00.000Z",
+            "number": 87281
+        }
+    ],
+    "total": 2,
+    "totalToday": 1
+}

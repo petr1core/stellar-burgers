@@ -1,0 +1,18 @@
+{
+    "success": true,
+    "name": "Краторная булка N-200i",
+    "order": {
+        "_id": "671ab234c3f7b9001cfa0999",
+        "ingredients": [
+            "643d69a5c3f7b9001cfa093c",
+            "643d69a5c3f7b9001cfa093e",
+            "643d69a5c3f7b9001cfa0943",
+            "643d69a5c3f7b9001cfa093c"
+        ],
+        "status": "done",
+        "name": "Краторная булка N-200i",
+        "createdAt": "2024-12-16T10:30:00.000Z",
+        "updatedAt": "2024-12-16T10:30:00.000Z",
+        "number": 12345
+    }
+}
