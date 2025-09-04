@@ -9,17 +9,18 @@ import {
   clearCurrentOrder
 } from '../../services/slices/ordersSlice';
 import {
-  clearConstructor,
-  moveIngredient,
+  clearBurgerConstructor,
+  upIngredient,
+  downIngredient,
   removeIngredient
-} from '../../services/slices/constructorSlice';
+} from '../../services/slices/burger-constructor/slice';
 
 export const BurgerConstructor: FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.auth);
-  const { bun, ingredients, totalPrice } = useSelector(
-    (state: RootState) => state.constructor
+  const { bun, ingredients } = useSelector(
+    (state: RootState) => state.burgerConstructor.burgerConstructor
   );
   const { currentOrder, loading: orderRequest } = useSelector(
     (state: RootState) => state.orders
@@ -42,6 +43,16 @@ export const BurgerConstructor: FC = () => {
     }
 
     return counters;
+  }, [bun, ingredients]);
+
+  // Рассчитываем общую стоимость
+  const totalPrice = useMemo(() => {
+    const bunPrice = bun ? bun.price * 2 : 0;
+    const ingredientsPrice = ingredients.reduce(
+      (sum, ingredient) => sum + ingredient.price,
+      0
+    );
+    return bunPrice + ingredientsPrice;
   }, [bun, ingredients]);
 
   const onOrderClick = () => {
@@ -69,16 +80,27 @@ export const BurgerConstructor: FC = () => {
 
   const closeOrderModal = () => {
     dispatch(clearCurrentOrder());
-    dispatch(clearConstructor());
+    dispatch(clearBurgerConstructor());
   };
 
   const handleMoveIngredient = (dragIndex: number, hoverIndex: number) => {
-    dispatch(moveIngredient({ dragIndex, hoverIndex }));
+    if (hoverIndex < dragIndex) {
+      dispatch(upIngredient(dragIndex));
+    } else {
+      dispatch(downIngredient(dragIndex));
+    }
   };
 
   const handleRemoveIngredient = (ingredientId: string) => {
-    dispatch(removeIngredient(ingredientId));
+    const ingredient = ingredients.find((ing) => ing.id === ingredientId);
+    if (ingredient) {
+      dispatch(removeIngredient(ingredient));
+    }
   };
+
+  // Определяем, должна ли кнопка быть заблокирована
+  const isOrderButtonDisabled =
+    !bun || ingredients.length === 0 || orderRequest;
 
   return (
     <BurgerConstructorUI
@@ -90,6 +112,7 @@ export const BurgerConstructor: FC = () => {
       closeOrderModal={closeOrderModal}
       onMoveIngredient={handleMoveIngredient}
       onRemoveIngredient={handleRemoveIngredient}
+      isOrderButtonDisabled={isOrderButtonDisabled}
     />
   );
 };

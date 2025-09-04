@@ -1,4 +1,5 @@
 import { useSelector, useDispatch } from '../../services/store';
+import { RootState } from '../../services/store';
 
 import styles from './constructor-page.module.css';
 
@@ -6,14 +7,16 @@ import { BurgerIngredients } from '../../components';
 import { BurgerConstructor } from '../../components';
 import { Preloader } from '../../components/ui';
 import { FC, useEffect, useMemo } from 'react';
-import { fetchIngredients } from '../../services/slices';
+import { fetchIngredients } from '../../services/slices/ingredientsSlice';
 
 export const ConstructorPage: FC = () => {
   const dispatch = useDispatch();
   const { loading: isIngredientsLoading } = useSelector(
-    (state) => state.ingredients
+    (state: RootState) => state.ingredients
   );
-  const { bun, ingredients } = useSelector((state: any) => state.constructor);
+  const { bun, ingredients } = useSelector(
+    (state: RootState) => state.burgerConstructor.burgerConstructor
+  );
 
   // Создаем счетчики для ингредиентов
   const ingredientCounters = useMemo(() => {

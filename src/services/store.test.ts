@@ -1,17 +1,37 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { rootReducer } from './store';
+import ingredientsReducer, {
+  IngredientsState
+} from './slices/ingredientsSlice';
+import ordersReducer, { OrdersState } from './slices/ordersSlice';
+import authReducer, { AuthState } from './slices/authSlice';
 import burgerConstructorReducer, {
   burgerConstructorState
 } from './slices/burger-constructor/slice';
-import feedReducer, { FeedState } from './slices/feed/slice';
-import ingredientsReducer, {
-  IngredientsState
-} from './slices/ingredients/slice';
-import orderReducer, { OrderState } from './slices/order/slice';
-import userReducer, { UserState } from './slices/user/slice';
 
 describe('Проверяют правильную инициализацию rootReducer', () => {
-  const burgerConstructorInitialState: burgerConstructorState = {
+  const ingredientsInitialState: IngredientsState = {
+    ingredients: [],
+    loading: false,
+    error: null
+  };
+
+  const ordersInitialState: OrdersState = {
+    feeds: null,
+    userOrders: [],
+    currentOrder: null,
+    loading: false,
+    error: null
+  };
+
+  const authInitialState: AuthState = {
+    user: null,
+    isAuthenticated: false,
+    loading: false,
+    error: null
+  };
+
+  const constructorInitialState: burgerConstructorState = {
     burgerConstructor: {
       bun: null,
       ingredients: []
@@ -19,98 +39,48 @@ describe('Проверяют правильную инициализацию roo
     error: null
   };
 
-  const feedInitialState: FeedState = {
-    orders: [],
-    isFeedsLoading: false,
-    order: null,
-    isOrderLoading: false,
-    total: 0,
-    totalToday: 0,
-    error: null
-  };
-
-  const ingredientsInitialState: IngredientsState = {
-    ingredients: [],
-    isIngredientsLoading: false,
-    error: null
-  };
-
-  const orderInitialState: OrderState = {
-    order: null,
-    isOrderLoading: false,
-    error: null
-  };
-
-  const userInitialState: UserState = {
-    isAuthenticated: false,
-    loginUserRequest: false,
-    user: null,
-    orders: [],
-    ordersRequest: false,
-    error: null
-  };
-
   const store = configureStore({
     reducer: rootReducer,
     preloadedState: {
-      burgerConstructor: burgerConstructorInitialState,
-      feed: feedInitialState,
       ingredients: ingredientsInitialState,
-      order: orderInitialState,
-      user: userInitialState
+      orders: ordersInitialState,
+      auth: authInitialState,
+      burgerConstructor: constructorInitialState
     }
   });
 
-  test('smoke test burger constructor', () => {
+  test('smoke test constructor', () => {
     expect(store.getState().burgerConstructor).toEqual(
-      burgerConstructorReducer(burgerConstructorInitialState, {
+      burgerConstructorReducer(constructorInitialState, {
         type: 'UNKNOWN_ACTION'
       })
     );
 
     const addIngredientAction = { type: 'addIngredient' };
     store.dispatch(addIngredientAction);
-    expect(store.getState().burgerConstructor).toEqual(
-      burgerConstructorInitialState
-    );
-
-    const upIngredientAction = { type: 'upIngredient' };
-    store.dispatch(upIngredientAction);
-    expect(store.getState().burgerConstructor).toEqual(
-      burgerConstructorInitialState
-    );
-
-    const downIngredientAction = { type: 'downIngredient' };
-    store.dispatch(downIngredientAction);
-    expect(store.getState().burgerConstructor).toEqual(
-      burgerConstructorInitialState
-    );
+    expect(store.getState().burgerConstructor).toEqual(constructorInitialState);
 
     const removeIngredientAction = { type: 'removeIngredient' };
     store.dispatch(removeIngredientAction);
-    expect(store.getState().burgerConstructor).toEqual(
-      burgerConstructorInitialState
-    );
+    expect(store.getState().burgerConstructor).toEqual(constructorInitialState);
 
-    const clearBurgerConstructorAction = { type: 'clearBurgerConstructor' };
-    store.dispatch(clearBurgerConstructorAction);
-    expect(store.getState().burgerConstructor).toEqual(
-      burgerConstructorInitialState
-    );
+    const clearConstructorAction = { type: 'clearConstructor' };
+    store.dispatch(clearConstructorAction);
+    expect(store.getState().burgerConstructor).toEqual(constructorInitialState);
   });
 
-  test('smoke test feed', () => {
-    expect(store.getState().feed).toEqual(
-      feedReducer(undefined, { type: 'UNKNOWN_ACTION' })
+  test('smoke test orders', () => {
+    expect(store.getState().orders).toEqual(
+      ordersReducer(undefined, { type: 'UNKNOWN_ACTION' })
     );
 
-    const getFeedsThunkAction = { type: 'getFeedsThunk' };
-    store.dispatch(getFeedsThunkAction);
-    expect(store.getState().feed).toEqual(feedInitialState);
+    const fetchFeedsAction = { type: 'orders/fetchFeeds' };
+    store.dispatch(fetchFeedsAction);
+    expect(store.getState().orders).toEqual(ordersInitialState);
 
-    const getOrderByNumberThunkAction = { type: 'getOrderByNumberThunk' };
-    store.dispatch(getOrderByNumberThunkAction);
-    expect(store.getState().feed).toEqual(feedInitialState);
+    const fetchOrderByNumberAction = { type: 'orders/fetchOrderByNumber' };
+    store.dispatch(fetchOrderByNumberAction);
+    expect(store.getState().orders).toEqual(ordersInitialState);
   });
 
   test('smoke test ingredients', () => {
@@ -118,52 +88,22 @@ describe('Проверяют правильную инициализацию roo
       ingredientsReducer(undefined, { type: 'UNKNOWN_ACTION' })
     );
 
-    const getIngredientsThunkAction = { type: 'getIngredientsThunk' };
-    store.dispatch(getIngredientsThunkAction);
+    const fetchIngredientsAction = { type: 'ingredients/fetchIngredients' };
+    store.dispatch(fetchIngredientsAction);
     expect(store.getState().ingredients).toEqual(ingredientsInitialState);
   });
 
-  test('smoke test order', () => {
-    expect(store.getState().order).toEqual(
-      orderReducer(undefined, { type: 'UNKNOWN_ACTION' })
+  test('smoke test auth', () => {
+    expect(store.getState().auth).toEqual(
+      authReducer(undefined, { type: 'UNKNOWN_ACTION' })
     );
 
-    const clearOrderAction = { type: 'clearOrder' };
-    store.dispatch(clearOrderAction);
-    expect(store.getState().order).toEqual(orderInitialState);
+    const loginUserAction = { type: 'auth/loginUser' };
+    store.dispatch(loginUserAction);
+    expect(store.getState().auth).toEqual(authInitialState);
 
-    const orderBurgerThunkAction = { type: 'orderBurgerThunk' };
-    store.dispatch(orderBurgerThunkAction);
-    expect(store.getState().order).toEqual(orderInitialState);
-  });
-
-  test('smoke test user', () => {
-    expect(store.getState().user).toEqual(
-      userReducer(undefined, { type: 'UNKNOWN_ACTION' })
-    );
-
-    const clearErrorsAction = { type: 'clearErrors' };
-    store.dispatch(clearErrorsAction);
-    expect(store.getState().user).toEqual(userInitialState);
-
-    const loginUserThunkAction = { type: 'loginUserThunk' };
-    store.dispatch(loginUserThunkAction);
-    expect(store.getState().user).toEqual(userInitialState);
-
-    const logoutUserThunkAction = { type: 'logoutUserThunk' };
-    store.dispatch(logoutUserThunkAction);
-    expect(store.getState().user).toEqual(userInitialState);
-
-    const getUserThunkAction = { type: 'getUserThunk' };
-    store.dispatch(getUserThunkAction);
-    expect(store.getState().user).toEqual(userInitialState);
-
-    const updateUserThunkAction = { type: 'updateUserThunk' };
-    store.dispatch(updateUserThunkAction);
-    expect(store.getState().user).toEqual(userInitialState);
-
-    const getOrdersThunkAction = { type: 'getOrdersThunk' };
-    store.dispatch(getOrdersThunkAction);
-    expect(store.getState().user).toEqual(userInitialState);
+    const logoutAction = { type: 'auth/logout' };
+    store.dispatch(logoutAction);
+    expect(store.getState().auth).toEqual(authInitialState);
   });
 });

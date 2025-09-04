@@ -107,10 +107,15 @@ const ordersSlice = createSlice({
 
         // Check that the order contains all necessary fields
         if (action.payload.order && action.payload.order._id) {
-          console.log('createOrder: adding complete order to userOrders:', action.payload.order);
+          console.log(
+            'createOrder: adding complete order to userOrders:',
+            action.payload.order
+          );
           state.userOrders.unshift(action.payload.order);
         } else {
-          console.log('createOrder: order is incomplete, not adding to userOrders');
+          console.log(
+            'createOrder: order is incomplete, not adding to userOrders'
+          );
         }
         state.error = null;
       })

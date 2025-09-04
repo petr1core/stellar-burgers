@@ -85,12 +85,14 @@ const authSlice = createSlice({
       // Check token on initialization
       const token = document.cookie.includes('accessToken');
       if (token) {
-        // If there is a token, set state as authenticated
+        // If there is a token, set loading state
         // getUser will be called in App.tsx to check token validity
-        state.isAuthenticated = true;
+        state.loading = true;
+        state.isAuthenticated = false; // Don't assume token is valid
       } else {
         state.isAuthenticated = false;
         state.user = null;
+        state.loading = false;
       }
     }
   },
@@ -165,6 +167,8 @@ const authSlice = createSlice({
       })
       .addCase(getUser.rejected, (state, action) => {
         state.loading = false;
+        state.isAuthenticated = false;
+        state.user = null;
         state.error =
           action.error.message || 'Ошибка получения данных пользователя';
       })

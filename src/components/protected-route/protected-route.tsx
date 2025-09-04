@@ -6,9 +6,18 @@ interface ProtectedRouteProps {
   children: ReactNode;
 }
 export const ProtectedRoute: FC<ProtectedRouteProps> = ({ children }) => {
-  const { user } = useSelector((state: any) => state.auth);
+  const { user, loading, isAuthenticated } = useSelector(
+    (state: any) => state.auth
+  );
   const location = useLocation();
-  if (!user) {
+
+  // Если идет загрузка, показываем загрузку или ничего
+  if (loading) {
+    return null; // или компонент загрузки
+  }
+
+  // Если не авторизован, перенаправляем на логин
+  if (!isAuthenticated) {
     return <Navigate to='/login' state={{ from: location }} replace />;
   }
 

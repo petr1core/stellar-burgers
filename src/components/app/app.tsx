@@ -26,8 +26,10 @@ const App = () => {
   useEffect(() => {
     dispatch(checkAuth());
     dispatch(fetchIngredients());
-    // If there is a token, get user data
-    if (document.cookie.includes('accessToken')) {
+
+    // Only try to get user data if there's a token
+    const hasToken = document.cookie.includes('accessToken');
+    if (hasToken) {
       dispatch(getUser());
     }
   }, [dispatch]);
