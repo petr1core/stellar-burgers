@@ -25,8 +25,47 @@
             "createdAt": "2024-01-01T13:00:00.000Z",
             "updatedAt": "2024-01-01T13:00:00.000Z",
             "number": 87281
+        },
+        {
+            "_id": "87282",
+            "ingredients": [
+                "643d69a5c3f7b9001cfa093c",
+                "643d69a5c3f7b9001cfa093e",
+                "643d69a5c3f7b9001cfa0943",
+                "643d69a5c3f7b9001cfa0944"
+            ],
+            "status": "done",
+            "name": "Био-котлета из марсианской Магнолии",
+            "createdAt": "2024-01-01T14:00:00.000Z",
+            "updatedAt": "2024-01-01T14:00:00.000Z",
+            "number": 87282
+        },
+        {
+            "_id": "87283",
+            "ingredients": [
+                "643d69a5c3f7b9001cfa093c",
+                "643d69a5c3f7b9001cfa093e"
+            ],
+            "status": "pending",
+            "name": "Соус Spicy-X",
+            "createdAt": "2024-01-01T15:00:00.000Z",
+            "updatedAt": "2024-01-01T15:00:00.000Z",
+            "number": 87283
+        },
+        {
+            "_id": "87284",
+            "ingredients": [
+                "643d69a5c3f7b9001cfa093c",
+                "643d69a5c3f7b9001cfa093e",
+                "643d69a5c3f7b9001cfa0943"
+            ],
+            "status": "done",
+            "name": "Соус фирменный Space Sauce",
+            "createdAt": "2024-01-01T16:00:00.000Z",
+            "updatedAt": "2024-01-01T16:00:00.000Z",
+            "number": 87284
         }
     ],
-    "total": 2,
-    "totalToday": 1
+    "total": 5,
+    "totalToday": 3
 }
