@@ -1,112 +1,80 @@
 /// <reference types="cypress" />
+import { SELECTORS, API_ENDPOINTS, URLS } from '../support/selectors';
 
 describe('Авторизация пользователя', () => {
     beforeEach(() => {
-        cy.intercept('POST', 'https://norma.nomoreparties.space/api/auth/register', { fixture: 'user.json' }).as('register');
+        cy.clearAuth();
+        cy.clearLocalStorage();
+        cy.clearCookies();
+        cy.window().then((win) => {
+            win.sessionStorage.clear();
+        });
+        cy.setupAuthIntercepts();
     });
 
     it('должен перенаправлять неавторизованного пользователя на страницу входа', () => {
-        cy.clearCookies();
-        cy.clearLocalStorage();
-        cy.visit('/profile');
-
-        cy.url().should('eq', Cypress.config().baseUrl + '/login');
-        cy.clearCookies();
-        cy.clearLocalStorage();
+        cy.visitPage(URLS.PROFILE);
+        cy.url().should('eq', Cypress.config().baseUrl + URLS.LOGIN);
     });
 
     it('должен найти элементы формы на странице входа', () => {
-        cy.clearCookies();
-        cy.clearLocalStorage();
-        cy.visit('/login');
+        cy.visitPage(URLS.LOGIN);
 
-        cy.contains('Вход').should('be.visible');
-        cy.get('[data-testid="email-input"]').should('be.visible');
-        cy.get('[data-testid="password-input"]').should('be.visible');
-        cy.get('[data-testid="login-button"]').should('be.visible');
+        cy.contains(SELECTORS.LOGIN_TITLE).should('be.visible');
+        cy.get(SELECTORS.EMAIL_INPUT).should('be.visible');
+        cy.get(SELECTORS.PASSWORD_INPUT).should('be.visible');
+        cy.get(SELECTORS.LOGIN_BUTTON).should('be.visible');
     });
 
     it('должен успешно авторизовать пользователя при вводе корректных данных', () => {
-        cy.intercept('POST', 'https://norma.nomoreparties.space/api/auth/login', { fixture: 'user.json' }).as('login');
+        cy.visitPage(URLS.LOGIN);
+        cy.contains(SELECTORS.LOGIN_TITLE).should('be.visible');
 
-        cy.clearCookies();
-        cy.clearLocalStorage();
-        cy.visit('/login');
-        cy.contains('Вход').should('be.visible');
-
-        cy.get('[data-testid="email-input"]').should('be.visible');
-        cy.get('[data-testid="password-input"]').should('be.visible');
-
-        cy.get('[data-testid="email-input"] input').type('test@example.com');
-        cy.get('[data-testid="password-input"] input').type('password123');
-        cy.get('[data-testid="login-button"]').click();
+        cy.fillLoginForm('test@example.com', 'password123');
         cy.wait('@login');
 
-        cy.url().should('eq', Cypress.config().baseUrl + '/');
-        cy.clearCookies();
-        cy.clearLocalStorage();
+        cy.url().should('eq', Cypress.config().baseUrl + URLS.HOME);
     });
 
     it('должен не пускать на страницу при вводе некорректных данных', () => {
-        cy.intercept('POST', 'https://norma.nomoreparties.space/api/auth/login', {
+        cy.intercept('POST', API_ENDPOINTS.AUTH_LOGIN, {
             success: false,
             message: 'Неверный логин или пароль'
         }).as('loginError');
 
-        cy.clearCookies();
-        cy.clearLocalStorage();
-        cy.visit('/login');
-        cy.contains('Вход').should('be.visible');
+        cy.visitPage(URLS.LOGIN);
+        cy.contains(SELECTORS.LOGIN_TITLE).should('be.visible');
 
-        cy.get('[data-testid="email-input"]').should('be.visible');
-        cy.get('[data-testid="password-input"]').should('be.visible');
-
-        cy.get('[data-testid="email-input"] input').type('wrong@example.com');
-        cy.get('[data-testid="password-input"] input').type('wrongpassword');
-
-        cy.get('[data-testid="login-button"]').click();
-
+        cy.fillLoginForm('wrong@example.com', 'wrongpassword');
         cy.wait('@loginError');
 
-        cy.contains('Вход').should('be.visible');
-        cy.clearCookies();
-        cy.clearLocalStorage();
+        cy.contains(SELECTORS.LOGIN_TITLE).should('be.visible');
     });
 
     it('должен успешно зарегистрировать нового пользователя', () => {
-        cy.visit('/register');
-        cy.get('[data-testid="name-input"]').should('be.visible');
-        cy.get('[data-testid="email-input"]').should('be.visible');
-        cy.get('[data-testid="password-input"]').should('be.visible');
+        cy.visitPage(URLS.REGISTER);
+        cy.get(SELECTORS.NAME_INPUT).should('be.visible');
+        cy.get(SELECTORS.EMAIL_INPUT).should('be.visible');
+        cy.get(SELECTORS.PASSWORD_INPUT).should('be.visible');
 
-        cy.get('[data-testid="name-input"] input').type('Новый Пользователь');
-        cy.get('[data-testid="email-input"] input').type('newuser@example.com');
-        cy.get('[data-testid="password-input"] input').type('newpassword123');
-        cy.get('[data-testid="register-button"]').click();
+        cy.fillRegisterForm('Новый Пользователь', 'newuser@example.com', 'newpassword123');
         cy.wait('@register');
 
-        cy.url().should('eq', Cypress.config().baseUrl + '/');
+        cy.url().should('eq', Cypress.config().baseUrl + URLS.HOME);
     });
 
     it('должен успешно выйти из системы', () => {
-        cy.intercept('GET', 'https://norma.nomoreparties.space/api/auth/user', { fixture: 'user.json' }).as('getUser');
-        cy.intercept('POST', 'https://norma.nomoreparties.space/api/auth/logout', { success: true }).as('logout');
-
-        cy.setCookie('accessToken', 'test-access-token');
-        cy.setCookie('refreshToken', 'test-refresh-token');
-        cy.visit('/profile');
+        cy.setAuthTokens('test-access-token', 'test-refresh-token');
+        cy.visitPage(URLS.PROFILE);
         cy.wait('@getUser');
-        cy.contains('Профиль').should('be.visible');
-        cy.get('[data-testid="logout-button"]').should('be.visible');
-        cy.get('[data-testid="logout-button"]').click();
+        cy.contains(SELECTORS.PROFILE_TITLE).should('be.visible');
+        cy.get(SELECTORS.LOGOUT_BUTTON).should('be.visible').click();
         cy.wait('@logout');
-        cy.url().should('eq', Cypress.config().baseUrl + '/');
-        cy.clearCookies();
-        cy.clearLocalStorage();
+        cy.url().should('eq', Cypress.config().baseUrl + URLS.HOME);
     });
 
     it('должен обновлять токен при истечении срока действия', () => {
-        cy.intercept('POST', 'https://norma.nomoreparties.space/api/auth/token', (req) => {
+        cy.intercept('POST', API_ENDPOINTS.AUTH_TOKEN, (req) => {
             req.reply({
                 success: true,
                 accessToken: 'Bearer new-access-token',
@@ -114,11 +82,34 @@ describe('Авторизация пользователя', () => {
             });
         }).as('refreshToken');
 
-        cy.setCookie('accessToken', 'expired-access-token');
-        cy.setCookie('refreshToken', 'valid-refresh-token');
+        cy.setAuthTokens('expired-access-token', 'valid-refresh-token');
+        cy.visitPage(URLS.PROFILE);
 
-        cy.visit('/profile');
+        // После обновления токена пользователь должен остаться на странице профиля
+        cy.contains(SELECTORS.PROFILE_TITLE, { timeout: 20000 }).should('be.visible');
+    });
 
-        cy.contains('Вход', { timeout: 20000 }).should('be.visible');
+    it('должен разлогинивать пользователя при недействительном refresh token', () => {
+        cy.intercept('POST', API_ENDPOINTS.AUTH_TOKEN, (req) => {
+            req.reply({
+                success: false,
+                message: 'Token is invalid'
+            });
+        }).as('refreshTokenError');
+
+        cy.intercept('GET', API_ENDPOINTS.AUTH_USER, (req) => {
+            req.reply({
+                success: false,
+                message: 'jwt expired'
+            });
+        }).as('getUserError');
+
+        cy.setAuthTokens('expired-access-token', 'invalid-refresh-token');
+        cy.visitPage(URLS.PROFILE);
+
+        cy.wait('@getUserError');
+
+        cy.url({ timeout: 10000 }).should('eq', Cypress.config().baseUrl + URLS.LOGIN);
+        cy.contains(SELECTORS.LOGIN_TITLE).should('be.visible');
     });
 });

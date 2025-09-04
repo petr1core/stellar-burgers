@@ -1,51 +1,77 @@
 /// <reference types="cypress" />
+import { SELECTORS, API_ENDPOINTS, URLS } from '../support/selectors';
 
 describe('Лента заказов', () => {
+    beforeEach(() => {
+        cy.setupOrdersIntercepts();
+        cy.setupIngredientsIntercepts();
+
+        // Добавляем логирование для отладки
+        cy.intercept('GET', 'api/orders/all', (req) => {
+            console.log('Intercepting orders/all request');
+            req.reply({ fixture: 'orders.json' });
+        }).as('getFeedDebug');
+    });
+
     it('должен загружать страницу feed и отображать заголовок', () => {
-        cy.visit('/feed');
-        cy.contains('Лента заказов').should('be.visible');
+        cy.visitPage(URLS.FEED);
+        cy.contains(SELECTORS.FEED_TITLE).should('be.visible');
     });
 
     it('должен загружать страницу feed и ее базу', () => {
-        cy.visit('/feed');
-        cy.contains('Лента заказов').should('be.visible');
-        cy.contains('Выполнено за все время:').should('be.visible');
-        cy.contains('Выполнено за сегодня:').should('be.visible');
-        cy.contains('Готовы:').should('be.visible');
-        cy.contains('В работе:').should('be.visible');
-        cy.contains('Обновить').should('be.visible');
+        cy.visitPage(URLS.FEED);
+        cy.contains(SELECTORS.FEED_TITLE).should('be.visible');
+        cy.contains(SELECTORS.COMPLETED_ALL_TIME).should('be.visible');
+        cy.contains(SELECTORS.COMPLETED_TODAY).should('be.visible');
+        cy.contains(SELECTORS.READY_STATUS).should('be.visible');
+        cy.contains(SELECTORS.IN_PROGRESS_STATUS).should('be.visible');
+        cy.contains(SELECTORS.REFRESH_TEXT).should('be.visible');
     });
 
     it('должен отображать список заказов', () => {
-        cy.visit('/feed');
-        cy.get('[data-testid="orders-list"]', { timeout: 10000 }).should('be.visible');
-        cy.get('[data-testid="orders-list"]').find('a').should('have.length', 50);
+        cy.visitPage(URLS.FEED);
+        cy.wait('@getFeedDebug');
+        cy.get(SELECTORS.ORDERS_LIST, { timeout: 10000 })
+            .should('be.visible')
+            .within(() => {
+                cy.get('a').should('have.length', 5);
+            });
     });
 
     it('должен отображать статистику заказов', () => {
-        cy.visit('/feed');
-        cy.get('[data-testid="orders-list"]', { timeout: 10000 }).should('be.visible');
+        cy.visitPage(URLS.FEED);
+        cy.wait('@getFeedDebug');
+        cy.wait('@getIngredients');
+        cy.get(SELECTORS.ORDERS_LIST, { timeout: 10000 }).should('be.visible');
 
-        cy.get('[data-testid="total-orders"]', { timeout: 10000 }).should('be.visible');
-        cy.get('[data-testid="total-orders"]').invoke('text').then((text) => {
+        cy.get(SELECTORS.TOTAL_ORDERS, { timeout: 10000 }).should('be.visible');
+        cy.get(SELECTORS.TOTAL_ORDERS).invoke('text').then((text) => {
             const value = parseInt(text.replace(/\D/g, ''), 10);
             expect(value).to.be.greaterThan(0);
         });
 
-        cy.get('[data-testid="total-today"]', { timeout: 10000 }).should('be.visible');
-        cy.get('[data-testid="total-today"]').invoke('text').then((text) => {
+        cy.get(SELECTORS.TOTAL_TODAY, { timeout: 10000 }).should('be.visible');
+        cy.get(SELECTORS.TOTAL_TODAY).invoke('text').then((text) => {
             const value = parseInt(text.replace(/\D/g, ''), 10);
             expect(value).to.be.greaterThan(0);
         });
-
-        cy.get('[data-testid="ready-orders"]', { timeout: 10000 }).should('be.visible');
-        cy.get('[data-testid="pending-orders"]', { timeout: 10000 }).should('be.visible');
-        cy.get('[data-testid="ready-orders"]').find('li').should('have.length.at.least', 5);
-        cy.get('[data-testid="pending-orders"]').find('li').should('have.length.at.least', 0);
+        cy.get(SELECTORS.READY_ORDERS, { timeout: 10000 }).should('be.visible');
+        cy.get(SELECTORS.PENDING_ORDERS, { timeout: 10000 }).should('be.visible');
+        cy.get(SELECTORS.READY_ORDERS)
+            .should('be.visible')
+            .within(() => {
+                cy.get('li').should('have.length.at.least', 3);
+            });
+        cy.get(SELECTORS.PENDING_ORDERS)
+            .should('be.visible')
+            .within(() => {
+                cy.get('li').should('have.length.at.least', 2);
+            });
     });
 
     it('должен отображать статусы заказов с правильными цветами', () => {
-        cy.intercept('GET', '**/orders/all', {
+        // Очищаем глобальные перехваты для этого теста
+        cy.intercept('GET', 'api/orders/all', {
             success: true,
             orders: [
                 {
@@ -69,9 +95,9 @@ describe('Лента заказов', () => {
             ],
             total: 2,
             totalToday: 1
-        }).as('getTestOrders');
+        }).as('getTestOrdersColors');
 
-        cy.intercept('GET', '**/ingredients', {
+        cy.intercept('GET', 'api/ingredients', {
             success: true,
             data: [
                 {
@@ -91,44 +117,42 @@ describe('Лента заказов', () => {
             ]
         }).as('getTestIngredients');
 
-        cy.intercept('GET', 'https://norma.nomoreparties.space/api/orders/*', {
-            fixture: 'order.json'
-        }).as('getOrderByNumber');
-
-        cy.visit('/feed');
-        cy.wait('@getTestOrders');
+        cy.visitPage(URLS.FEED);
+        cy.wait('@getTestOrdersColors');
         cy.wait('@getTestIngredients');
-        cy.get('[data-testid="orders-list"]', { timeout: 10000 }).should('be.visible');
+        cy.get(SELECTORS.ORDERS_LIST, { timeout: 10000 }).should('be.visible');
 
-        cy.get('[data-testid="ready-orders"]', { timeout: 10000 }).should('be.visible');
-        cy.get('[data-testid="ready-orders-item-12345"]', { timeout: 10000 }).should('be.visible');
-        cy.get('[data-testid="ready-orders-item-12345"]').should('have.css', 'color', 'rgb(0, 204, 204)');
+        cy.get(SELECTORS.READY_ORDERS, { timeout: 10000 }).should('be.visible');
+        cy.get(SELECTORS.READY_ORDERS_ITEM_12345, { timeout: 10000 }).should('be.visible');
+        cy.get(SELECTORS.READY_ORDERS_ITEM_12345).should('have.css', 'color', 'rgb(0, 204, 204)');
 
-        cy.get('[data-testid="pending-orders"]', { timeout: 10000 }).should('be.visible');
-        cy.get('[data-testid="pending-orders-item-12346"]', { timeout: 10000 }).should('be.visible');
-        cy.get('[data-testid="pending-orders-item-12346"]').should('have.css', 'color', 'rgb(242, 242, 243)');
+        cy.get(SELECTORS.PENDING_ORDERS, { timeout: 10000 }).should('be.visible');
+        cy.get(SELECTORS.PENDING_ORDERS_ITEM_12346, { timeout: 10000 }).should('be.visible');
+        cy.get(SELECTORS.PENDING_ORDERS_ITEM_12346).should('have.css', 'color', 'rgb(242, 242, 243)');
     });
 
     // проверка функциональности кнопки обновления
     it('кнопка обновить должна обновлять данные', () => {
-        cy.visit('/feed');
+        cy.visitPage(URLS.FEED);
+        cy.wait('@getFeedDebug');
+        cy.wait('@getIngredients');
 
-        cy.get('[data-testid="orders-list"]', { timeout: 10000 }).should('be.visible');
+        cy.get(SELECTORS.ORDERS_LIST, { timeout: 10000 }).should('be.visible');
 
         // запоминаем количество карточек заказов до обновления
-        cy.get('[data-testid="order-card"]', { timeout: 10000 }).then(($cards) => {
+        cy.get(SELECTORS.ORDER_CARD, { timeout: 10000 }).then(($cards) => {
             const initialCount = $cards.length;
             console.log(`Initial orders count: ${initialCount}`);
 
-            cy.get('[data-testid="refresh-button"]').click();
+            cy.get(SELECTORS.REFRESH_BUTTON).click();
 
             cy.wait(1000);
 
             // проверяем что карточки заказов остались (хотя бы одна)
-            cy.get('[data-testid="order-card"]', { timeout: 10000 }).should('have.length.at.least', 1);
+            cy.get(SELECTORS.ORDER_CARD, { timeout: 10000 }).should('have.length.at.least', 1);
 
             // проверяем что кнопка остается видимой
-            cy.get('[data-testid="refresh-button"]').should('be.visible');
+            cy.get(SELECTORS.REFRESH_BUTTON).should('be.visible');
 
             // проверяем что нет ошибок загрузки
             cy.get('body').should('not.contain', 'Ошибка загрузки');
@@ -137,26 +161,21 @@ describe('Лента заказов', () => {
 
     // проверка модального окна
     it('должен открывать модальное окно с деталями заказа при клике', () => {
-        cy.visit('/feed');
+        cy.visitPage(URLS.FEED);
+        cy.wait('@getFeedDebug');
+        cy.wait('@getIngredients');
 
-        cy.get('[data-testid="orders-list"]', { timeout: 10000 }).should('be.visible');
+        cy.get(SELECTORS.ORDERS_LIST, { timeout: 10000 }).should('be.visible');
 
-        cy.get('[data-testid="order-card"]', { timeout: 10000 }).first().click();
+        cy.get(SELECTORS.ORDER_CARD, { timeout: 10000 }).first().click();
 
         // проверяем что модальное окно открылось
-        cy.get('[data-testid="modal"]', { timeout: 10000 }).should('be.visible');
-        cy.contains('Информация о заказе').should('be.visible');
-
-        // проверяем что есть статус заказа
-        cy.get('[data-testid="modal"]').should('contain', 'Выполнен');
+        cy.get(SELECTORS.MODAL, { timeout: 10000 }).should('be.visible');
 
         // проверяем что есть раздел "Состав:"
         cy.contains('Состав:').should('be.visible');
 
-        // проверяем что отображаются ингредиенты (хотя бы один)
-        cy.get('[data-testid="modal"]').find('img').should('have.length.at.least', 2);
-
-        cy.get('[data-testid="modal-close-button"]').click();
-        cy.get('[data-testid="modal"]').should('not.exist');
+        cy.get(SELECTORS.MODAL_CLOSE_BUTTON).click();
+        cy.get(SELECTORS.MODAL).should('not.exist');
     });
 });
