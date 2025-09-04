@@ -70,14 +70,24 @@ export const fetchWithRefresh = async <T>(
     console.log('fetchWithRefresh: error:', err);
     if ((err as { message: string }).message === 'jwt expired') {
       console.log('fetchWithRefresh: token expired, refreshing...');
-      const refreshData = await refreshToken();
-      if (options.headers) {
-        (options.headers as { [key: string]: string }).authorization =
-          refreshData.accessToken;
+      try {
+        const refreshData = await refreshToken();
+        if (options.headers) {
+          (options.headers as { [key: string]: string }).authorization =
+            refreshData.accessToken;
+        }
+        console.log('fetchWithRefresh: retrying request with new token');
+        const res = await fetch(url, options);
+        return await checkResponse<T>(res);
+      } catch (refreshErr) {
+        console.log('fetchWithRefresh: refresh failed, logging out user');
+        // Очищаем токены при неудачном обновлении
+        localStorage.removeItem('refreshToken');
+        document.cookie =
+          'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        // Возвращаем ошибку, чтобы Redux мог обработать разлогинивание
+        return Promise.reject(refreshErr);
       }
-      console.log('fetchWithRefresh: retrying request with new token');
-      const res = await fetch(url, options);
-      return await checkResponse<T>(res);
     } else {
       return Promise.reject(err);
     }
@@ -88,7 +98,7 @@ type TIngredientsResponse = TServerResponse<{
   data: TIngredient[];
 }>;
 
-type TFeedsResponse = TServerResponse<{
+export type TFeedsResponse = TServerResponse<{
   orders: TOrder[];
   total: number;
   totalToday: number;
@@ -140,7 +150,7 @@ export const getOrdersApi = () => {
   });
 };
 
-type TNewOrderResponse = TServerResponse<{
+export type TNewOrderResponse = TServerResponse<{
   order: TOrder;
   name: string;
 }>;
@@ -163,7 +173,7 @@ export const orderBurgerApi = (data: string[]) => {
   });
 };
 
-type TOrderResponse = TServerResponse<{
+export type TOrderResponse = TServerResponse<{
   orders: TOrder[];
 }>;
 
@@ -275,10 +285,12 @@ export const resetPasswordApi = (data: { password: string; token: string }) => {
 type TUserResponse = TServerResponse<{ user: TUser }>;
 
 export const getUserApi = () => {
-  console.log('getUserApi: calling with token:', getCookie('accessToken'));
+  const token = getCookie('accessToken');
+  console.log('getUserApi: calling with token:', token);
+
   return fetchWithRefresh<TUserResponse>(`${URL}/auth/user`, {
     headers: {
-      authorization: getCookie('accessToken')
+      authorization: token || ''
     } as HeadersInit
   });
 };
