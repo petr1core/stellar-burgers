@@ -12,4 +12,5 @@ export type BurgerConstructorUIProps = {
   closeOrderModal: () => void;
   onMoveIngredient: (dragIndex: number, hoverIndex: number) => void;
   onRemoveIngredient: (ingredientId: string) => void;
+  isOrderButtonDisabled: boolean;
 };

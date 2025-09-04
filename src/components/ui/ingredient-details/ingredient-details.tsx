@@ -1,5 +1,6 @@
 import React, { FC, memo } from 'react';
 import { useSelector } from '../../../services/store';
+import { useParams } from 'react-router-dom';
 import styles from './ingredient-details.module.css';
 import { IngredientDetailsUIProps } from './type';
 
@@ -9,7 +10,7 @@ export const IngredientDetailsUI: FC<IngredientDetailsUIProps> = memo(
       ingredientData;
 
     return (
-      <div className={styles.content}>
+      <div className={styles.content} data-testid='ingredient-details-modal'>
         <img
           className={styles.img}
           alt='изображение ингредиента.'
@@ -41,9 +42,12 @@ export const IngredientDetailsUI: FC<IngredientDetailsUIProps> = memo(
 
 export const IngredientDetails: FC = () => {
   const { ingredients } = useSelector((state: any) => state.ingredients);
+  const { id } = useParams<{ id: string }>();
 
-  // TODO: взять данные из параметров роута
-  const ingredientData = ingredients[0] || {
+  // Находим ингредиент по ID из параметров роута
+  const ingredientData = ingredients.find(
+    (ingredient: any) => ingredient._id === id
+  ) || {
     _id: '',
     name: 'Булочка',
     type: 'bun',

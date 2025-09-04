@@ -1,6 +1,7 @@
 import { FC, memo, useEffect } from 'react';
 import { useSelector, useDispatch } from '../../../../services/store';
-import { fetchFeeds } from '../../../../services/slices';
+import { RootState } from '../../../../services/store';
+import { fetchFeeds } from '../../../../services/slices/ordersSlice';
 
 import styles from './feed.module.css';
 
@@ -14,11 +15,13 @@ export const FeedUI: FC<FeedUIProps> = memo(({ orders, handleGetFeeds }) => (
       <h1 className={`${styles.title} text text_type_main-large`}>
         Лента заказов
       </h1>
-      <RefreshButton
-        text='Обновить'
-        onClick={handleGetFeeds}
-        extraClass={'ml-30'}
-      />
+      <div data-testid='refresh-button'>
+        <RefreshButton
+          text='Обновить'
+          onClick={handleGetFeeds}
+          extraClass={'ml-30'}
+        />
+      </div>
     </div>
     <div className={styles.main}>
       <div className={styles.columnOrders}>
@@ -33,7 +36,7 @@ export const FeedUI: FC<FeedUIProps> = memo(({ orders, handleGetFeeds }) => (
 
 export const Feed: FC = () => {
   const dispatch = useDispatch();
-  const { feeds, loading } = useSelector((state: any) => state.orders);
+  const { feeds, loading } = useSelector((state: RootState) => state.orders);
 
   const handleGetFeeds = () => {
     dispatch(fetchFeeds());

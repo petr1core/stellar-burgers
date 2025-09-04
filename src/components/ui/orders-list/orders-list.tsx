@@ -9,7 +9,7 @@ export const OrdersListUI: FC<OrdersListUIProps> = ({ orderByDate }) => {
   console.log('OrdersListUI: orderByDate prop:', orderByDate);
 
   return (
-    <div className={`${styles.content}`}>
+    <div className={`${styles.content}`} data-testid='orders-list'>
       {orderByDate.map((order) => (
         <OrderCard order={order} key={order._id} />
       ))}

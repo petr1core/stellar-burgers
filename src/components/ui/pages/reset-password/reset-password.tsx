@@ -9,6 +9,7 @@ import {
 import styles from '../common.module.css';
 import { Link, useNavigate } from 'react-router-dom';
 import { ResetPasswordUIProps } from './type';
+import { validateResetPasswordForm } from '../../../../utils/validation';
 
 export const ResetPasswordUI: FC<ResetPasswordUIProps> = ({
   errorText,
@@ -16,7 +17,8 @@ export const ResetPasswordUI: FC<ResetPasswordUIProps> = ({
   setPassword,
   handleSubmit,
   token,
-  setToken
+  setToken,
+  validationErrors
 }) => (
   <main className={styles.container}>
     <div className={`pt-6 ${styles.wrapCenter}`}>
@@ -32,6 +34,11 @@ export const ResetPasswordUI: FC<ResetPasswordUIProps> = ({
             value={password}
             name='password'
           />
+          {validationErrors.password && (
+            <p className={`${styles.error} text text_type_main-default pt-2`}>
+              {validationErrors.password}
+            </p>
+          )}
         </div>
         <div className='pb-6'>
           <Input
@@ -40,10 +47,15 @@ export const ResetPasswordUI: FC<ResetPasswordUIProps> = ({
             onChange={(e) => setToken(e.target.value)}
             value={token}
             name='token'
-            error={false}
-            errorText=''
+            error={!!validationErrors.token}
+            errorText={validationErrors.token || ''}
             size='default'
           />
+          {validationErrors.token && (
+            <p className={`${styles.error} text text_type_main-default pt-2`}>
+              {validationErrors.token}
+            </p>
+          )}
         </div>
         <div className={`pb-6 ${styles.button}`}>
           <Button type='primary' size='medium' htmlType='submit'>
@@ -76,6 +88,7 @@ export const ResetPassword: FC = () => {
   } = useSelector((state: any) => state.auth);
   const [password, setPassword] = useState('');
   const [token, setToken] = useState('');
+  const [validationErrors, setValidationErrors] = useState({});
 
   // Если пользователь уже авторизован, перенаправляем его
   useEffect(() => {
@@ -86,6 +99,15 @@ export const ResetPassword: FC = () => {
 
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
+
+    // Валидация формы
+    const validation = validateResetPasswordForm(password, token);
+    setValidationErrors(validation.errors);
+
+    if (!validation.isValid) {
+      return;
+    }
+
     dispatch(resetPassword({ password, token }));
   };
 
@@ -97,6 +119,7 @@ export const ResetPassword: FC = () => {
       setToken={setToken}
       errorText={errorText}
       handleSubmit={handleSubmit}
+      validationErrors={validationErrors}
     />
   );
 };

@@ -9,6 +9,7 @@ import {
 import styles from '../common.module.css';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LoginUIProps } from './type';
+import { validateLoginForm } from '../../../../utils/validation';
 
 export const LoginUI: FC<LoginUIProps> = ({
   email,
@@ -16,7 +17,8 @@ export const LoginUI: FC<LoginUIProps> = ({
   errorText,
   handleSubmit,
   password,
-  setPassword
+  setPassword,
+  validationErrors
 }) => (
   <main className={styles.container}>
     <div className={`pt-6 ${styles.wrapCenter}`}>
@@ -34,20 +36,37 @@ export const LoginUI: FC<LoginUIProps> = ({
               onChange={(e) => setEmail(e.target.value)}
               value={email}
               name='email'
-              error={false}
-              errorText=''
+              error={!!validationErrors.email}
+              errorText={validationErrors.email || ''}
               size='default'
+              data-testid='email-input'
             />
+            {validationErrors.email && (
+              <p className={`${styles.error} text text_type_main-default pt-2`}>
+                {validationErrors.email}
+              </p>
+            )}
           </div>
           <div className='pb-6'>
             <PasswordInput
               onChange={(e) => setPassword(e.target.value)}
               value={password}
               name='password'
+              data-testid='password-input'
             />
+            {validationErrors.password && (
+              <p className={`${styles.error} text text_type_main-default pt-2`}>
+                {validationErrors.password}
+              </p>
+            )}
           </div>
           <div className={`pb-6 ${styles.button}`}>
-            <Button type='primary' size='medium' htmlType='submit'>
+            <Button
+              type='primary'
+              size='medium'
+              htmlType='submit'
+              data-testid='login-button'
+            >
               Войти
             </Button>
           </div>
@@ -85,6 +104,7 @@ export const Login: FC = () => {
   } = useSelector((state: any) => state.auth);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [validationErrors, setValidationErrors] = useState({});
 
   // Если пользователь уже авторизован, перенаправляем его
   useEffect(() => {
@@ -96,6 +116,15 @@ export const Login: FC = () => {
 
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
+
+    // Валидация формы
+    const validation = validateLoginForm(email, password);
+    setValidationErrors(validation.errors);
+
+    if (!validation.isValid) {
+      return;
+    }
+
     dispatch(loginUser({ email, password }));
   };
 
@@ -107,6 +136,7 @@ export const Login: FC = () => {
       setPassword={setPassword}
       errorText={errorText}
       handleSubmit={handleSubmit}
+      validationErrors={validationErrors}
     />
   );
 };

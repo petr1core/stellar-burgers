@@ -5,14 +5,12 @@ import { forgotPassword } from '../../../../services/slices';
 import { Input, Button } from '@zlden/react-developer-burger-ui-components';
 import styles from '../common.module.css';
 import { Link, useNavigate } from 'react-router-dom';
-import { PageUIProps } from '../common-type';
+import { PageUIProps, ValidationErrors } from '../common-type';
+import { validateForgotPasswordForm } from '../../../../utils/validation';
 
-export const ForgotPasswordUI: FC<PageUIProps> = ({
-  errorText,
-  email,
-  setEmail,
-  handleSubmit
-}) => (
+export const ForgotPasswordUI: FC<
+  PageUIProps & { validationErrors: ValidationErrors }
+> = ({ errorText, email, setEmail, handleSubmit, validationErrors }) => (
   <main className={styles.container}>
     <div className={`pt-6 ${styles.wrapCenter}`}>
       <h3 className='pb-6 text text_type_main-medium'>Восстановление пароля</h3>
@@ -28,13 +26,24 @@ export const ForgotPasswordUI: FC<PageUIProps> = ({
             onChange={(e) => setEmail(e.target.value)}
             value={email}
             name='email'
-            error={false}
-            errorText=''
+            error={!!validationErrors.email}
+            errorText={validationErrors.email || ''}
             size='default'
+            data-testid='email-input'
           />
+          {validationErrors.email && (
+            <p className={`${styles.error} text text_type_main-default pt-2`}>
+              {validationErrors.email}
+            </p>
+          )}
         </div>
         <div className={`pb-6 ${styles.button}`}>
-          <Button type='primary' size='medium' htmlType='submit'>
+          <Button
+            type='primary'
+            size='medium'
+            htmlType='submit'
+            data-testid='restore-button'
+          >
             Восстановить
           </Button>
         </div>
@@ -63,6 +72,8 @@ export const ForgotPassword: FC = () => {
     user
   } = useSelector((state: any) => state.auth);
   const [email, setEmail] = useState('');
+  const [validationErrors, setValidationErrors] = useState({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   // Если пользователь уже авторизован, перенаправляем его
   useEffect(() => {
@@ -71,17 +82,43 @@ export const ForgotPassword: FC = () => {
     }
   }, [user, navigate]);
 
+  // Сброс состояния отправки при изменении email
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    setIsSubmitted(false);
+  };
+
+  // Обработка успешного восстановления пароля
+  useEffect(() => {
+    if (!loading && !errorText && isSubmitted) {
+      // Если запрос выполнен успешно, переходим на страницу сброса пароля
+      localStorage.setItem('resetPassword', 'true');
+      navigate('/reset-password', { replace: true });
+    }
+  }, [loading, errorText, isSubmitted, navigate]);
+
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
+
+    // Валидация формы
+    const validation = validateForgotPasswordForm(email);
+    setValidationErrors(validation.errors);
+
+    if (!validation.isValid) {
+      return;
+    }
+
+    setIsSubmitted(true);
     dispatch(forgotPassword({ email }));
   };
 
   return (
     <ForgotPasswordUI
       email={email}
-      setEmail={setEmail}
+      setEmail={handleEmailChange}
       errorText={errorText}
       handleSubmit={handleSubmit}
+      validationErrors={validationErrors}
     />
   );
 };

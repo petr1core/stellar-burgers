@@ -9,6 +9,7 @@ import {
 import styles from '../common.module.css';
 import { Link, useNavigate } from 'react-router-dom';
 import { RegisterUIProps } from './type';
+import { validateRegisterForm } from '../../../../utils/validation';
 
 export const RegisterUI: FC<RegisterUIProps> = ({
   errorText,
@@ -17,6 +18,7 @@ export const RegisterUI: FC<RegisterUIProps> = ({
   handleSubmit,
   password,
   setPassword,
+  validationErrors,
   userName,
   setUserName
 }) => (
@@ -36,10 +38,16 @@ export const RegisterUI: FC<RegisterUIProps> = ({
               onChange={(e) => setUserName(e.target.value)}
               value={userName}
               name='name'
-              error={false}
-              errorText=''
+              error={!!validationErrors.name}
+              errorText={validationErrors.name || ''}
               size='default'
+              data-testid='name-input'
             />
+            {validationErrors.name && (
+              <p className={`${styles.error} text text_type_main-default pt-2`}>
+                {validationErrors.name}
+              </p>
+            )}
           </div>
           <div className='pb-6'>
             <Input
@@ -48,20 +56,37 @@ export const RegisterUI: FC<RegisterUIProps> = ({
               onChange={(e) => setEmail(e.target.value)}
               value={email}
               name={'email'}
-              error={false}
-              errorText=''
+              error={!!validationErrors.email}
+              errorText={validationErrors.email || ''}
               size={'default'}
+              data-testid='email-input'
             />
+            {validationErrors.email && (
+              <p className={`${styles.error} text text_type_main-default pt-2`}>
+                {validationErrors.email}
+              </p>
+            )}
           </div>
           <div className='pb-6'>
             <PasswordInput
               onChange={(e) => setPassword(e.target.value)}
               value={password}
               name='password'
+              data-testid='password-input'
             />
+            {validationErrors.password && (
+              <p className={`${styles.error} text text_type_main-default pt-2`}>
+                {validationErrors.password}
+              </p>
+            )}
           </div>
           <div className={`pb-6 ${styles.button}`}>
-            <Button type='primary' size='medium' htmlType='submit'>
+            <Button
+              type='primary'
+              size='medium'
+              htmlType='submit'
+              data-testid='register-button'
+            >
               Зарегистрироваться
             </Button>
           </div>
@@ -93,6 +118,7 @@ export const Register: FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userName, setUserName] = useState('');
+  const [validationErrors, setValidationErrors] = useState({});
 
   // Если пользователь уже авторизован, перенаправляем его
   useEffect(() => {
@@ -103,6 +129,15 @@ export const Register: FC = () => {
 
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
+
+    // Валидация формы
+    const validation = validateRegisterForm(userName, email, password);
+    setValidationErrors(validation.errors);
+
+    if (!validation.isValid) {
+      return;
+    }
+
     dispatch(registerUser({ email, password, name: userName }));
   };
 
@@ -116,6 +151,7 @@ export const Register: FC = () => {
       setUserName={setUserName}
       errorText={errorText}
       handleSubmit={handleSubmit}
+      validationErrors={validationErrors}
     />
   );
 };

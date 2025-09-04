@@ -37,6 +37,7 @@ export const ProfileUI: FC<ProfileUIProps> = ({
             errorText={''}
             size={'default'}
             icon={'EditIcon'}
+            data-testid='name-input'
           />
         </div>
         <div className='pb-6'>
@@ -50,6 +51,7 @@ export const ProfileUI: FC<ProfileUIProps> = ({
             errorText={''}
             size={'default'}
             icon={'EditIcon'}
+            data-testid='email-input'
           />
         </div>
         <div className='pb-6'>
@@ -63,6 +65,7 @@ export const ProfileUI: FC<ProfileUIProps> = ({
             errorText={''}
             size={'default'}
             icon={'EditIcon'}
+            data-testid='password-input'
           />
         </div>
         {isFormChanged && (
@@ -72,10 +75,16 @@ export const ProfileUI: FC<ProfileUIProps> = ({
               htmlType='button'
               size='medium'
               onClick={handleCancel}
+              data-testid='cancel-button'
             >
               Отменить
             </Button>
-            <Button type='primary' size='medium' htmlType='submit'>
+            <Button
+              type='primary'
+              size='medium'
+              htmlType='submit'
+              data-testid='save-button'
+            >
               Сохранить
             </Button>
           </div>

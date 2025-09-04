@@ -17,6 +17,7 @@ export const OrderCardUI: FC<OrderCardUIProps> = memo(
       relative='path'
       state={locationState}
       className={`p-6 mb-4 mr-2 ${styles.order}`}
+      data-testid='order-card'
     >
       <div className={styles.order_info}>
         <span className={`text text_type_digits-default ${styles.number}`}>
